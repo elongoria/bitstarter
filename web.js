@@ -7,10 +7,13 @@ var index = fs.readFileSync('index.html', function(err,data){
     console.log(data);
 });
 
-var buffer = buf.toString(index);
+var buffer = new Buffer(index);
+buffer.write(index);
+
+var bufferString = buffer.toString;
 
 app.get('/', function(request, response) {
-  response.send(buffer);
+  response.send(bufferString);
 });
 
 var port = process.env.PORT || 5000;
