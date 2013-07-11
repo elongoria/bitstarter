@@ -27,7 +27,8 @@ var cheerio = require('cheerio');
 var rest = require('restler');
 var HTMLFILE_DEFAULT = "index.html";
 var CHECKSFILE_DEFAULT = "checks.json";
-var URL_DEFAULT = "http://aqueous-shore-4028.herokuapp.com/";
+var URL_DEFAULT = "url.html";
+
 var assertFileExists = function(infile) {
     var instr = infile.toString();
     if(!fs.existsSync(instr)) {
@@ -35,10 +36,6 @@ var assertFileExists = function(infile) {
         process.exit(1); 
     }
     return instr;
-};
-
-var assertURLExists = function() {
-    return "The URL exists!";
 };
 
 var cheerioHtmlFile = function(htmlfile) {
@@ -65,37 +62,25 @@ var clone = function(fn) {
 };
 
 if(require.main == module) {
-    var myArgs = process.argv.slice(2);
-    for(var i = 0; i < myArgs.length; i++){
-	if (myArgs[i] == "-f" || myArgs[i] == "--file"){
-	    console.log("File was given");
-	}
-	else if(myArgs[i] == "-u" || myArgs[i] == "--url"){
-	    console.log("URL was given");
-	}
-	else {
-	    console.log("Niether file or url was given.  Maybe checks was");
-	}
-    }
-
     program
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
-        .option('-u, --url <url>', 'URL path', clone(assertURLExists), URL_DEFAULT)
+        .option('-u, --url <url>', 'URL path')
         .parse(process.argv);
-    // urlGiven ? var fileToCheck = program.url : var fileToCheck = program.file;
 
-    if (program.file){
-	console.log(program.file);
-	
+    var htmlFile = program.file;
+    if(program.url){
+	rest.get(program.url).on('complete', function(result){
+	    fs.writeFileSync("url.html", result);
+	});
+	htmlFile = "url.html";
     }
-    else{
-        console.log("File was NOT given");
-    }
-    var checkJson = checkHtmlFile(program.file, program.checks);
+
+    var checkJson = checkHtmlFile(htmlFile, program.checks);
     var outJson = JSON.stringify(checkJson, null, 4);
     console.log(outJson);
-} else {
+} 
+else {
     exports.checkHtmlFile = checkHtmlFile;
 }
 
